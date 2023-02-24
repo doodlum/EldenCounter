@@ -1,10 +1,12 @@
 #include "include/guardCounter.h"
-#include "include/offsets.h"
-#include "include/simpleIni.h"
+
+#include <SimpleIni.h>
+
 void guardCounter::update() {
 	//DEBUG(gc_Timer);
 	if (gc_Timer > 0) {
-		gc_Timer -= *offsets::g_deltaTime;
+		static float* g_deltaTime = (float*)REL::RelocationID(523660, 410199).address();
+		gc_Timer -= *g_deltaTime;
 		if (gc_Timer <= 0) {
 			auto pc = RE::PlayerCharacter::GetSingleton();
 			if (pc) {
@@ -27,18 +29,19 @@ void guardCounter::registerBlock() {
 }
 
 void guardCounter::readSettings() {
-	INFO("Loading settings...");
+	logger::info("Loading settings...");
 	CSimpleIniA ini;
 #define SETTINGFILE_PATH "Data\\SKSE\\Plugins\\EldenCounter.ini"
 	ini.LoadFile(SETTINGFILE_PATH);
 	gc_Time = std::stof(ini.GetValue("General", "Time"));
-	INFO("Settings loaded.");
+	logger::info("Settings loaded.");
 }
 
 void guardCounter::loadData() {
-	INFO("Loading data...");
+	logger::info("Loading data...");
 	gc_triggerSpell = RE::TESDataHandler::GetSingleton()->LookupForm<RE::SpellItem>(0x12CE, "EldenCounter.esp");
 	if (!gc_triggerSpell) {
-		ERROR("Error: spell not found! Enable EldenCounter.esp");
+		logger::error("Error: spell not found! Enable EldenCounter.esp");
+		RE::DebugMessageBox("Error: spell not found! Enable EldenCounter.esp");
 	}
 }
